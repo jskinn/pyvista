@@ -364,6 +364,10 @@ if VTK9:
         from vtkmodules.vtkIOSegY import vtkSegYReader
         return vtkSegYReader()
 
+    def lazy_vtkGLTFReader():
+        from vtkmodules.vtkIOGeometry import vtkGLTFReader
+        return vtkGLTFReader()
+
 else:  # pragma: no cover
 
     # maintain VTK 8.2 compatibility

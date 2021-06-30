@@ -22,6 +22,8 @@ READERS = {
     '.ply': _vtk.vtkPLYReader,
     '.obj': _vtk.vtkOBJReader,
     '.stl': _vtk.vtkSTLReader,
+    '.gltf': _vtk.lazy_vtkGLTFReader,
+    '.glb': _vtk.lazy_vtkGLTFReader,
     '.vtp': _vtk.vtkXMLPolyDataReader,
     '.vts': _vtk.vtkXMLStructuredGridReader,
     '.vtm': _vtk.vtkXMLMultiBlockDataReader,
