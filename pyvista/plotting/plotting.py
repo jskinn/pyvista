@@ -3490,6 +3490,33 @@ class BasePlotter(PickingHelper, WidgetHelper):
         exporter.SetRenderWindow(self.ren_win)
         return exporter.Write()
 
+    def export_gltf(self, filename):
+        """Export scene to gltf format."""
+        # lazy import vtkGLTFExporter here as it takes a long time to
+        # load and is not always used
+        try:
+            from vtkmodules.vtkIOExport import vtkGLTFExporter
+        except ImportError:
+            from vtk import vtkGLTFExporter
+
+        if not hasattr(self, "ren_win"):
+            raise RuntimeError("This plotter must still have a render window open.")
+        if isinstance(pyvista.FIGURE_PATH, str) and not os.path.isabs(filename):
+            filename = os.path.join(pyvista.FIGURE_PATH, filename)
+        else:
+            filename = os.path.abspath(os.path.expanduser(filename))
+
+        # TODO: glTF uses Y-up, Z-forward coordinates, rotate the plot before export
+
+        exporter = vtkGLTFExporter()
+        exporter.SetFileName(filename)
+        exporter.InlineDataOn()  # Embed the binary information in the file.
+        exporter.SaveNormalOn()
+        exporter.SetRenderWindow(self.ren_win)
+        output = exporter.Write()
+
+        return output
+
     def __del__(self):
         """Delete the plotter."""
         # We have to check here if it has the closed attribute as it
