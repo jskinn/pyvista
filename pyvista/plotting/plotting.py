@@ -3,6 +3,7 @@
 import sys
 import pathlib
 import collections.abc
+import typing
 from typing import Sequence
 import logging
 import os
@@ -3490,8 +3491,20 @@ class BasePlotter(PickingHelper, WidgetHelper):
         exporter.SetRenderWindow(self.ren_win)
         return exporter.Write()
 
-    def export_gltf(self, filename):
-        """Export scene to gltf format."""
+    def export_gltf(self, filename: typing.Union[str, pathlib.Path], embed_binary: bool = True):
+        """Export scene to gltf format.
+
+        Parameters
+        ----------
+        filename : str, Path
+            The filename to save to, it should have either .gltf or .glb as the extension.
+
+        embed_binary : bool
+            Whether to embed binary information inside the file. If false, the glTF file will only contain JSON data,
+            and model and image information will be saved to adjacent .bin or .png files.
+            glTF files without binary information should only use the '.gltf' extension.
+            See https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#gltf-basics
+        """
         # lazy import vtkGLTFExporter here as it takes a long time to
         # load and is not always used
         try:
@@ -3505,12 +3518,21 @@ class BasePlotter(PickingHelper, WidgetHelper):
             filename = os.path.join(pyvista.FIGURE_PATH, filename)
         else:
             filename = os.path.abspath(os.path.expanduser(filename))
+        _, ext = os.path.splitext(filename)
+        if ext not in {'.glb', '.gltf'}:
+            warnings.warn(
+                f"Saving glTF data to a a file without either .gltf or .glb extension.\nFile is '{filename}')")
+        if not embed_binary and ext == '.glb':
+            warnings.warn(
+                "glTF file extension indicates binary data is included (.glb), but data is exported separately")
 
         # TODO: glTF uses Y-up, Z-forward coordinates, rotate the plot before export
 
         exporter = vtkGLTFExporter()
         exporter.SetFileName(filename)
-        exporter.InlineDataOn()  # Embed the binary information in the file.
+        if embed_binary:
+            # Embed the binary information in the file.
+            exporter.InlineDataOn()
         exporter.SaveNormalOn()
         exporter.SetRenderWindow(self.ren_win)
         output = exporter.Write()
